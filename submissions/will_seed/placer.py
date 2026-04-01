@@ -61,7 +61,7 @@ def _extract_edges(benchmark, plc):
 
 
 class WillSeedPlacer:
-    def __init__(self, seed=42, refine_iters=3000):
+    def __init__(self, seed=42, refine_iters=15000):
         self.seed = seed
         self.refine_iters = refine_iters
 
@@ -137,8 +137,8 @@ class WillSeedPlacer:
         best_pos = pos.copy()
         best_cost = current_cost
 
-        T_start = max(cw, ch) * 0.15
-        T_end = max(cw, ch) * 0.001
+        T_start = max(cw, ch) * 0.25
+        T_end = max(cw, ch) * 0.0005
 
         for step in range(self.refine_iters):
             frac = step / self.refine_iters
