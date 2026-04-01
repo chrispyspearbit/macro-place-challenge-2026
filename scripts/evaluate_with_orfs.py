@@ -24,9 +24,11 @@ import resource
 import re
 import torch
 from pathlib import Path
+from dataclasses import dataclass
 
 # Memory limit for ORFS subprocesses (64 GB)
 MEMORY_LIMIT_BYTES = 64 * 1024 * 1024 * 1024
+DEFAULT_ORFS_ROOT = Path("/Users/christopherberman/Desktop/misc/hrtchall/OpenROAD-flow-scripts")
 
 def _set_memory_limit():
     """Pre-exec hook: cap virtual memory for the child process tree."""
@@ -40,8 +42,22 @@ sys.path.insert(0, str(Path(__file__).parent))
 from benchmark import Benchmark
 from loader import load_benchmark_from_dir
 from objective import compute_proxy_cost
-from orfs_integration.design_generator import create_orfs_design, ORFSDesign
 from generate_macro_placement_tcl import write_orfs_macro_placement
+
+try:
+    from orfs_integration.design_generator import create_orfs_design, ORFSDesign
+except ModuleNotFoundError:
+    create_orfs_design = None
+
+    @dataclass
+    class ORFSDesign:
+        name: str
+        tech: str
+        verilog_files: list[Path]
+        macro_placement_tcl: Path
+        clock_period: float
+        core_utilization: float
+        top_module: str
 
 
 def get_top_module_name(benchmark_name: str, verilog_file: Path) -> str:
@@ -507,6 +523,11 @@ def evaluate_benchmark(
     else:
         print(f"  ⚠️  No existing config found at {orfs_config_dir}")
         print(f"  Generating basic config (may not work)")
+        if create_orfs_design is None:
+            return {
+                'error': 'missing orfs_integration.design_generator for generated-config fallback',
+                'benchmark': benchmark_name
+            }
 
         # Fallback to generated config
         verilog_files = list(source_dir.glob("*.v"))
@@ -581,7 +602,7 @@ def main():
     parser.add_argument('--benchmark', type=str, help='Single benchmark')
     parser.add_argument('--all', action='store_true', help='All modern benchmarks')
     parser.add_argument('--orfs-root', type=Path,
-                       default=Path("../OpenROAD-flow-scripts"),
+                       default=DEFAULT_ORFS_ROOT,
                        help='Path to OpenROAD-flow-scripts')
     parser.add_argument('--output', type=Path,
                        default=Path("output/orfs_evaluation"),
