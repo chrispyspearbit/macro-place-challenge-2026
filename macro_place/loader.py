@@ -5,11 +5,69 @@ Leverages the existing MacroPlacement parser instead of reimplementing.
 """
 
 import os
+import re
 import torch
+from decimal import Decimal
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Optional, Tuple
 
 from macro_place._plc import PlacementCost
 from macro_place.benchmark import Benchmark
+
+_SCIENTIFIC_LITERAL_RE = re.compile(
+    r"(?<![\w.])[-+]?(?:\d+\.\d*|\d+|\.\d+)[eE][-+]?\d+"
+)
+
+
+def _normalize_scientific_literal(match: re.Match[str]) -> str:
+    """Convert a scientific-notation literal to plain decimal text."""
+    normalized = format(Decimal(match.group(0)), "f")
+    if "." in normalized:
+        normalized = normalized.rstrip("0").rstrip(".")
+    return "0" if normalized in {"-0", "+0"} else normalized
+
+
+def _sanitize_netlist_for_plc(netlist_file: str) -> Optional[Path]:
+    """
+    Rewrite scientific-notation float literals for the upstream parser.
+
+    The current TILOS parser tokenizes ``5.68434e-16`` as ``5.68434e`` and
+    then raises a ``ValueError`` during float conversion. Rewriting those
+    literals to plain decimal keeps the benchmark semantically identical while
+    remaining compatible with the parser's regex.
+    """
+    contents = Path(netlist_file).read_text(encoding="utf-8")
+    rewritten = _SCIENTIFIC_LITERAL_RE.sub(_normalize_scientific_literal, contents)
+    if rewritten == contents:
+        return None
+
+    with NamedTemporaryFile(
+        mode="w",
+        suffix=".pb.txt",
+        delete=False,
+        encoding="utf-8",
+    ) as handle:
+        handle.write(rewritten)
+        return Path(handle.name)
+
+
+def _create_placement_cost(netlist_file: str) -> PlacementCost:
+    """Instantiate ``PlacementCost`` with a compatibility fallback."""
+    try:
+        return PlacementCost(netlist_file)
+    except ValueError as exc:
+        if "could not convert string to float" not in str(exc):
+            raise
+
+        sanitized_netlist = _sanitize_netlist_for_plc(netlist_file)
+        if sanitized_netlist is None:
+            raise
+
+        try:
+            return PlacementCost(str(sanitized_netlist))
+        finally:
+            sanitized_netlist.unlink(missing_ok=True)
 
 
 def load_benchmark(
@@ -27,7 +85,7 @@ def load_benchmark(
         PlacementCost object is needed for cost computation
     """
     # Initialize PlacementCost (parses netlist)
-    plc = PlacementCost(netlist_file)
+    plc = _create_placement_cost(netlist_file)
 
     # Optionally restore placement from .plc file
     if plc_file:

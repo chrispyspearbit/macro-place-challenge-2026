@@ -1,6 +1,5 @@
 """Smoke tests to verify the competition infrastructure works end-to-end."""
 
-import torch
 import pytest
 from pathlib import Path
 
@@ -39,6 +38,18 @@ def test_load_benchmark_from_dir(ibm01):
     assert benchmark.num_macros > 0
     assert benchmark.canvas_width > 0
     assert benchmark.canvas_height > 0
+
+
+def test_load_benchmark_with_scientific_notation():
+    """Benchmarks with scientific-notation offsets still load correctly."""
+    path = TESTCASE_ROOT / "ibm02"
+    if not path.exists():
+        pytest.skip("TILOS submodule not initialized")
+
+    benchmark, plc = load_benchmark_from_dir(str(path))
+    assert benchmark.name == "ibm02"
+    assert benchmark.num_macros > 0
+    assert plc.net_cnt > 0
 
 
 def test_compute_proxy_cost(ibm01):
@@ -82,4 +93,6 @@ def test_greedy_row_placer(ibm01):
 
     assert placement.shape == (benchmark.num_macros, 2)
     costs = compute_proxy_cost(placement, benchmark, plc)
-    assert costs["overlap_count"] == 0, f"Greedy placer has {costs['overlap_count']} overlaps"
+    assert (
+        costs["overlap_count"] == 0
+    ), f"Greedy placer has {costs['overlap_count']} overlaps"

@@ -91,7 +91,7 @@ Evaluation is two-tiered:
 
 ### Tier 1: Proxy Cost Ranking (All Submissions)
 
-All submissions are ranked by **proxy cost** across the 18 IBM benchmarks. This is the primary qualifying metric. Proxy cost is computed using the TILOS MacroPlacement evaluator:
+All submissions are ranked by **proxy cost** across the 17 IBM benchmarks. This is the primary qualifying metric. Proxy cost is computed using the TILOS MacroPlacement evaluator:
 
 > **Proxy Cost = 1.0 × Wirelength + 0.5 × Density + 0.5 × Congestion**
 
@@ -111,8 +111,8 @@ The top 7 submissions by proxy score will be evaluated through the full **OpenRO
 
 ```bash
 # Clone the repository
-git clone https://github.com/partcleda/partcl-macro-place-challenge.git
-cd partcl-macro-place-challenge
+git clone https://github.com/partcleda/macro-place-challenge-2026.git
+cd macro-place-challenge-2026
 
 # Initialize TILOS MacroPlacement submodule (required for evaluation)
 git submodule update --init external/MacroPlacement
@@ -218,7 +218,7 @@ Classical methods (SA, RePlAce) have been refined for decades but still have roo
 
 ## 🏅 Leaderboard
 
-Submissions are ranked by **average proxy cost** across all 18 IBM benchmarks (lower is better). Zero overlaps required on all benchmarks.
+Submissions are ranked by **average proxy cost** across all 17 IBM benchmarks (lower is better). Zero overlaps required on all benchmarks.
 
 | Rank | Team | Avg Proxy Cost | Best | Worst | Overlaps | Runtime |
 |------|------|---------------|------|-------|----------|---------|
@@ -245,7 +245,7 @@ A: For proxy cost (Tier 1), your aggregate score across all IBM benchmarks must 
 
 ## 📧 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/partcleda/partcl-macro-place-challenge/issues)
+- **Issues**: [GitHub Issues](https://github.com/partcleda/macro-place-challenge-2026/issues)
 - **Email**: contact@partcl.com
 
 ## 📄 License

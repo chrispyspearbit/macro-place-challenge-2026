@@ -51,9 +51,9 @@ baselines = [
 evaluate = "macro_place.evaluate:main"
 
 [project.urls]
-Homepage = "https://github.com/partcl/partcl-marco-place-challenge"
-Repository = "https://github.com/partcl/partcl-marco-place-challenge"
-Issues = "https://github.com/partcl/partcl-marco-place-challenge/issues"
+Homepage = "https://github.com/partcleda/macro-place-challenge-2026"
+Repository = "https://github.com/partcleda/macro-place-challenge-2026"
+Issues = "https://github.com/partcleda/macro-place-challenge-2026/issues"
 
 [tool.setuptools.packages.find]
 include = ["macro_place*"]
